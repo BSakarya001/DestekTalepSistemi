@@ -1,0 +1,6 @@
+@DestakTalepApı_HostAddress = http://localhost:5093
+
+GET {{DestakTalepApı_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

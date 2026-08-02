@@ -1,0 +1,113 @@
+[
+  {
+    "ContainingType": "DestakTalepAp\u0131.Controllers.KullanicilarController",
+    "Method": "GirisYap",
+    "RelativePath": "api/Kullanicilar/GirisYap",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "kullanici",
+        "Type": "DestakTalepAp\u0131.Models.Kullanici",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DestakTalepAp\u0131.Controllers.KullanicilarController",
+    "Method": "KayitOl",
+    "RelativePath": "api/Kullanicilar/KayitOl",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "kullanici",
+        "Type": "DestakTalepAp\u0131.Models.Kullanici",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DestakTalepAp\u0131.Controllers.TaleplerController",
+    "Method": "TalepDetay",
+    "RelativePath": "api/Talepler/TalepDetay/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DestakTalepAp\u0131.Controllers.TaleplerController",
+    "Method": "TalepGuncelle",
+    "RelativePath": "api/Talepler/TalepGuncelle/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "guncelTalep",
+        "Type": "DestakTalepAp\u0131.Models.Talep",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DestakTalepAp\u0131.Controllers.TaleplerController",
+    "Method": "TalepOlustur",
+    "RelativePath": "api/Talepler/TalepOlustur",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "talep",
+        "Type": "DestakTalepAp\u0131.Models.Talep",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DestakTalepAp\u0131.Controllers.TaleplerController",
+    "Method": "TalepSil",
+    "RelativePath": "api/Talepler/TalepSil/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DestakTalepAp\u0131.Controllers.TaleplerController",
+    "Method": "TumTalepleriGetir",
+    "RelativePath": "api/Talepler/TumTalepleriGetir",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
