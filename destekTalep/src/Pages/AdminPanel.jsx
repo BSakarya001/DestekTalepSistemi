@@ -4,6 +4,22 @@ import axios from 'axios';
 
 function AdminPanel() {
   const navigate=useNavigate();
+   
+  useEffect(() => {
+     const kullanici=JSON.parse(localStorage.getItem("kullanici"));
+
+
+     if(!kullanici || kullanici.rol !== "Admin"){
+      alert("Bu sayfaya erişim yetkiniz yok.");
+      navigate('/')
+     }
+
+  },[navigate]);
+
+
+
+
+
    const [talepler,setTalepler]=useState([]);
    useEffect(() => {
     TumTalepleriGetir();
@@ -13,8 +29,20 @@ function AdminPanel() {
    
     {
     try{
+      const token=localStorage.getItem("token");
       const cevap=  await
-      axios.get(  "https://localhost:7154/api/Talepler/TumTalepleriGetir");
+      axios.get(  "https://localhost:7154/api/Talepler/TumTalepleriGetir",
+
+        {
+         headers:{
+          Authorization:`Bearer ${token}`
+         }
+        }
+
+
+
+      );
+
       setTalepler(cevap.data);
  }
  catch(hata){
@@ -76,6 +104,7 @@ function AdminPanel() {
            onClick={() => navigate('/admin-talep-yonetimi')}>
             Talepleri Yönet
             </button>
+            <button className="btn btn-success mx-4" onClick={() => navigate('/kullanicilar')}>Kullanıcı Yönetimi</button>
 
       </div>
        <div className="container">

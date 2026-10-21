@@ -1,5 +1,7 @@
 import React,{useState} from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom';
+
 
 
 
@@ -11,9 +13,30 @@ const [urunAdi,setUrunAdi]=useState("");
 const[baslik,setBaslik]=useState("");
 const [kategori, setKategori]=useState("");
 const [oncelik, setOncelik]=useState("Orta");
+  const [hata,setHata]=useState("");
+ const [mesaj,setMesaj]=useState("");
+
+
+const navigate=useNavigate();
+
 
 const TalepOlustur = async () => {
+  setHata("");
+  setMesaj("");
+  if(
+    baslik.trim() === "" ||
+    iadeNedeni.trim() === "" ||
+    aciklama.trim() === "" ||
+    siparisNo.trim() === "" ||
+    urunAdi.trim() === "" ||
+    kategori.trim() === ""
+  ){
+    setHata("Lütfen tüm alanları doldurunuz.");
+    return;
+  }
   try {
+      const token=localStorage.getItem("token");
+      const kullanici=JSON.parse(localStorage.getItem("kullanici"));
     await axios.post("https://localhost:7154/api/Talepler/TalepOlustur", {
       siparisNo: siparisNo,
       urunAdi: urunAdi,
@@ -24,20 +47,37 @@ const TalepOlustur = async () => {
        oncelik:oncelik,
 
 
-      kullaniciId: 1
-    });
+      kullaniciId:kullanici.id
+    },
+    {
+      headers:{
+        Authorization:`Bearer ${token}`
+      }
+    }
+  
+  
+  
+  );
 
-    alert("Talep başarıyla oluşturuldu!");
+    setMesaj("Talep başarıyla oluşturuldu!");
+    
+    setBaslik("");
+    setSiparisNo("");
+    setUrunAdi("");
+    setIadeNedeni("");
+    setKategori("");
+    setOncelik("");
+    setAciklama("");
+
+    setTimeout(() =>{
+      navigate('/taleplerim');
+    },1000);
+
   }
   catch {
-    alert("Talep oluşturulamadı!");
+    setHata("Talep oluşturulamadı!");
   }
 };
-
-
-
-
-
 
 
 
@@ -45,6 +85,18 @@ const TalepOlustur = async () => {
     <div className="container col-md-6 mt-5">
 
       <h2 className="text-center mb-4">İade Talebi Oluştur</h2>
+
+      {hata && (
+  <div className="alert alert-danger">
+    {hata}
+  </div>
+)}
+
+{mesaj && (
+  <div className="alert alert-success">
+    {mesaj}
+  </div>
+)}
 
       <form>
         <div className="form-group mb-3">
@@ -133,10 +185,12 @@ const TalepOlustur = async () => {
     className="form-control"
     id="aciklama"
     rows="4"
+    maxLength={50}
     value={aciklama}
     onChange={(e)=>setAciklama(e.target.value)}
     placeholder="İade nedeninizi açıklayınız"
   ></textarea>
+  <small className="text-muted">{aciklama.length}/50</small>
 </div>
 
        

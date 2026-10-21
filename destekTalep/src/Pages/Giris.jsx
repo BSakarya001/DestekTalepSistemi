@@ -8,11 +8,33 @@ function Giris() {
  
   const [eposta,setEposta]=useState("");
   const [sifre,setSifre]=useState("");
+const [mesaj,setMesaj]=useState("");
+const [hata,setHata]=useState("");
+
   const navigate=useNavigate();
 
   
 
   const GirisYap = async ()=>{
+    setHata("");
+    setMesaj("");
+
+
+    if(eposta.trim()=== "" || sifre.trim()===""){
+      setHata("Lütfen  e-posta ve şifreyi doldurunuz.");
+      return;
+    }
+    if(!eposta.includes("@") || !eposta.includes(".com")){
+      setHata("Geçerli bir e-posta adresi giriniz:");
+      return;
+    }
+    
+
+
+    if(sifre.length<6){
+      setHata("Şifre en az 6 karakter olmalıdır.");
+      return;
+    }
     
     try{
 
@@ -24,40 +46,56 @@ function Giris() {
            }
 
       );
-      alert(cevap.data.rol);
+     
        console.log(cevap.data);
-     if(cevap.data.rol==="Admin"){
-      alert("Admin girişi başarılı!");
-      navigate('/admin')
+      localStorage.setItem("token",cevap.data.token);
+      localStorage.setItem(
+        "kullanici",
+        JSON.stringify(cevap.data.kullanici)
+      );
+
+     if(cevap.data.kullanici.rol==="Admin"){
+      setMesaj("Admin girişi başarılı!");
+      setTimeout(() =>{
+        navigate('/admin')
+      },1000);
 
      }
      else{
-      alert("Kullanıcı girişi başarılı!");
-      navigate('/dashboard')
+      setMesaj("Kullanıcı girişi başarılı!");
+      setTimeout(() =>{
+        navigate('/dashboard')
+      },1000);
      }
     }
     catch(hata){
       console.log(hata.response);
       console.log(hata.response?.data);
-      alert("E-posta veya şifre hatalı!");
+      setHata(hata.response?.data,"Giriş yapılamadı.");
     }
-
-
-
-
 
   }
 
 
-
-
-
-
-
   return (
     <div className="container col-md-5">
-      <form >
-      <h1 className='text-center '>DESTEK TALEP SİSTEMİ    </h1>
+      <form>
+
+  {hata && (
+    <div className="alert alert-danger">
+      {hata}
+    </div>
+  )}
+
+  {mesaj && (
+    <div className="alert alert-success">
+      {mesaj}
+    </div>
+  )}
+
+  <h1 className="text-center">
+    DESTEK TALEP SİSTEMİ
+  </h1>
       <h3>Giriş Yap</h3>
       <div className="form-group">
     <label htmlFor="exampleInputEmail1">E-posta Adresi</label>
@@ -75,12 +113,7 @@ function Giris() {
  Giriş Yap
 </button>
 
-
-
-
 </div>
-
-
 
 
 

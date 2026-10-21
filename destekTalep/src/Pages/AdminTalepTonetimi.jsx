@@ -4,8 +4,17 @@ import { useNavigate } from 'react-router-dom'
 
 function AdminTalepTonetimi() {
 const [talepler,setTalepler]=useState([]);
+const [hata,setHata]=useState("");
+ const [mesaj,setMesaj]=useState("");
 
 const navigate=useNavigate();
+
+const [arama,setArama]=useState("");
+const [durum,setDurum]=useState("");
+const [oncelik,setOncelik]=useState("");
+const [sayfa,setSayfa]=useState(1);
+const kayitSayisi=5;
+
 
 useEffect(()=>
   {
@@ -13,24 +22,104 @@ useEffect(()=>
 
 },[]);
 
+useEffect(() => {
+  const kullanici=JSON.parse(localStorage.getItem("kullanici"));
+
+  if(!kullanici || kullanici.rol !=="Admin"){
+    setHata("Bu sayfaya erişim yetkiniz yok!");
+   setTimeout(() =>{
+      navigate('/');
+    },1000);
+  }
+},[navigate]);
+
+useEffect(() => {
+  setSayfa(1);
+},[arama, durum, oncelik]);
+
 const TumTalepleriGetir = async () => 
 
   {
+    setHata("");
   try{
+    const token=localStorage.getItem("token");
     const cevap= await
-    axios.get("https://localhost:7154/api/Talepler/TumTalepleriGetir");
+    axios.get("https://localhost:7154/api/Talepler/TumTalepleriGetir",
+      {
+        headers:{
+          Authorization:`Bearer ${token}`
+
+        }
+      });
+
+
    console.log(cevap.data.map(x => x.durum));
+
     setTalepler(cevap.data);
 
     
   }catch{
-    alert("Talepler getirilemedi!");
+    setHata("Talepler getirilemedi!");
   }
 };
 
-const [arama,setArama]=useState("");
-const [durum,setDurum]=useState("");
-const [oncelik,setOncelik]=useState("");
+
+
+const DurumDegistir = async (talep,yeniDurum) =>{
+
+  setHata("");
+  setMesaj("");
+  try{
+    const token=localStorage.getItem("token");
+    console.log({
+  ...talep,
+  durum: yeniDurum
+});
+    await axios.put(`https://localhost:7154/api/Talepler/TalepGuncelle/${talep.id}`,
+      {...talep,
+        durum:yeniDurum
+      },{
+        headers:{
+          Authorization:`Bearer ${token}`
+        }
+      }
+    );
+     setMesaj("Durum güncellendi.");
+    TumTalepleriGetir();
+   
+  }
+  catch{
+    setHata("Durum güncellenmedi.");
+  }
+};
+
+const filtrelenmisTalepler = talepler.filter((talep) =>
+ 
+  {
+  const aramaUygun =
+    talep.id.toString().includes(arama) ||
+    talep.urunAdi.toLowerCase().includes(arama.toLowerCase());
+
+  const durumUygun =
+    durum === "" || talep.durum.trim() === durum.trim();
+
+  const oncelikUygun =
+    oncelik === "" || talep.oncelik === oncelik;
+
+  return aramaUygun && durumUygun && oncelikUygun;
+});
+
+const sonIndex = sayfa * kayitSayisi;
+const ilkIndex = sonIndex - kayitSayisi;
+
+const gosterilecekTalepler = filtrelenmisTalepler.slice(
+  ilkIndex,
+  sonIndex
+);
+const toplamSayfa = Math.max(
+  1,
+  Math.ceil(filtrelenmisTalepler.length / kayitSayisi)
+);
 
 
 
@@ -42,6 +131,26 @@ const [oncelik,setOncelik]=useState("");
   return (
    <div className="container mt-5">
     <h2 className='text-center mb-5'>İade Talep Yönetimi</h2>
+
+     {hata && (
+  <div className="alert alert-danger">
+    {hata}
+  </div>
+)}
+
+{mesaj && (
+  <div className="alert alert-success">
+    {mesaj}
+  </div>
+)}
+
+
+
+
+    <button type='button'className='btn btn-primary mb-3 ' onClick={() => navigate('/admin')}>Geri Dön</button>
+
+
+
     <p className='text-center text-muted mb-4'>Sistemde oluşturulan tüm iade taleplerini buradan yönetebilirsiniz.</p>
       <div className='row mb-4'>
         <div className='col-md-4'>
@@ -99,23 +208,8 @@ const [oncelik,setOncelik]=useState("");
       <th scope="col">İşlem</th>
     </tr>
   </thead>
-
-  <tbody>
-  {talepler
-.filter((talep) => {
-  const aramaUygun =
-    talep.id.toString().includes(arama) ||
-    talep.urunAdi.toLowerCase().includes(arama.toLowerCase());
-
-  const durumUygun =
-    durum === "" || talep.durum.trim()=== durum.trim();
-
-    const oncelikUygun=
-    oncelik === "" || talep.oncelik === oncelik ;
-
-  return aramaUygun && durumUygun && oncelikUygun;
-})
-.map((talep) => (
+<tbody>
+  {gosterilecekTalepler.map((talep) => (
     <tr key={talep.id}>
       <td>{talep.id}</td>
       <td>{talep.kullaniciId}</td>
@@ -123,14 +217,29 @@ const [oncelik,setOncelik]=useState("");
       <td>{talep.urunAdi}</td>
       <td>{talep.iadeNedeni}</td>
       <td>{talep.oncelik}</td>
-      <td>{talep.durum} - {durum}</td>
-      <td>{talep.olusturmaTarihi}</td>
+      <td>{talep.durum}</td>
+      <td>{new Date(talep.olusturmaTarihi).toLocaleDateString("tr-TR")}</td>
+
       <td>
         <button
-          className="btn btn-primary btn-sm"
+          className="btn btn-primary btn-sm mr-2"
           onClick={() => navigate("/talep-detay/" + talep.id)}
         >
           İncele
+        </button>
+
+        <button
+          className="btn btn-success btn-sm mr-2"
+          onClick={() => DurumDegistir(talep, "Onaylandı")}
+        >
+          Onayla
+        </button>
+
+        <button
+          className="btn btn-danger btn-sm"
+          onClick={() => DurumDegistir(talep, "Reddedildi")}
+        >
+          Reddet
         </button>
       </td>
     </tr>
@@ -141,21 +250,40 @@ const [oncelik,setOncelik]=useState("");
         </div>
         <nav className="mt-4">
   <ul className="pagination justify-content-center">
-    <li className="page-item disabled">
-      <a className="page-link" href="#">Önceki</a>
-    </li>
+   <li className={sayfa === 1 ? "page-item disabled" : "page-item"}>
+ <button
+  className="page-link"
+  onClick={() => setSayfa(Math.max(sayfa - 1, 1))}
+>
+  Önceki
+</button>
+</li>
 
-    <li className="page-item active">
-      <a className="page-link" href="#">1</a>
-    </li>
-
-    <li className="page-item">
-      <a className="page-link" href="#">2</a>
-    </li>
-
-    <li className="page-item">
-      <a className="page-link" href="#">Sonraki</a>
-    </li>
+  {[...Array(toplamSayfa)].map((_, index) => (
+  <li
+    key={index}
+    className={sayfa === index + 1 ? "page-item active" : "page-item"}
+  >
+    <button
+      className="page-link"
+      onClick={() => setSayfa(index + 1)}
+    >
+      {index + 1}
+    </button>
+  </li>
+))}
+<li
+  className={
+    sayfa === toplamSayfa ? "page-item disabled" : "page-item"
+  }
+>
+  <button
+  className="page-link"
+  onClick={() => setSayfa(Math.min(sayfa + 1, toplamSayfa))}
+>
+  Sonraki
+</button>
+</li>
   </ul>
 </nav>
    </div>

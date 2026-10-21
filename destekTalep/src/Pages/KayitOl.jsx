@@ -7,12 +7,42 @@ const [adSoyad,setAdSoyad]=useState("");
 const [eposta,setEposta]=useState("");
 const [sifre,setSifre]=useState("");
 const [sifreTekrar,setSifreTekrar]=useState("");
+const [mesaj,setMesaj]=useState("");
+const [hata,setHata]=useState("");
 const navigate=useNavigate();
+
+
 
 const KayitOlTikla =async() =>
 {
+  setHata("");
+  setMesaj("");
+  if(adSoyad.trim() === "" ||
+     eposta.trim() === "" || 
+     sifre.trim() === "" ||
+    sifreTekrar.trim() === ""){
+      setHata("Lütfen tüm alanları doldurunuz:");
+      return;
+    }
+    if(!eposta.includes("@") || !eposta.includes(".com")){
+      setHata("Geçerli bir e-posta adresi giriniz:");
+      return;
+    }
+
+    if(sifre.length<6){
+     setHata("Şifre en az 6 karakter olmalıdır.");
+      return;
+
+    }
+
+
+
+
+
+
+
    if(sifre !== sifreTekrar){
-    alert("Şifreler aynı değil!");
+    setHata("Şifreler aynı değil!");
     return;
    }
    try{
@@ -25,10 +55,13 @@ const KayitOlTikla =async() =>
       aktifMi:true
       }
     );
-    alert("Kayıt başarılı!");
-    navigate("/");
+    setMesaj("Kayıt başarılı! E-posta adresinize doğrulama kodu gönderildi.");
+    localStorage.setItem("doğrulanacakEposta",eposta);
+    setTimeout(() =>{
+      navigate('/eposta-dogrulama');
+    },1000);
   }catch(hata){
-      alert("Kayıt başarısız!");
+      setHata("Kayıt başarısız!");
     }
 
    
@@ -44,6 +77,21 @@ const KayitOlTikla =async() =>
       <h1 className='text center'>DESTEK TALEP SİSTEMİ</h1>
       <h3 className='text-center'>Kayit Ol</h3>
       <form >
+      
+
+  {hata && (
+    <div className="alert alert-danger">
+      {hata}
+    </div>
+  )}
+
+  {mesaj && (
+    <div className="alert alert-success">
+      {mesaj}
+    </div>
+  )}
+           
+
           <div className="form-group">
     <label htmlFor="exampleInputEmail1">Ad Soyad</label>
     <input type="text" className="form-control" value={adSoyad} onChange={(e) =>

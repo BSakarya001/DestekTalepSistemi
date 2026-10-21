@@ -6,35 +6,128 @@ function TalepDetay() {
   const {id} = useParams();
   const [talep,setTalep]=
   useState({});
+  const [mesajlar,setMesajlar]=useState([]);
+const [yeniMesaj,setYeniMesaj]=useState("");
 
-  useEffect(() => {
-    TalepDetayGetir();
-  },[]);
+  const [mesaj,setMesaj]=useState("");
+  const[hata,setHata]=useState("");
+  const [rol,setRol] = useState({});
+
+useEffect(() => {
+  const kayitliKullanici = JSON.parse(localStorage.getItem("kullanici"));
+
+  if (kayitliKullanici) {
+    setRol(kayitliKullanici.rol);
+  }
+
+  TalepDetayGetir();
+  MesajlariGetir();
+}, []);
   const TalepDetayGetir = async () =>
    {
     try{
-      const cevap= await axios.get("https://localhost:7154/api/Talepler/TalepDetay/" + id);
+      const token=localStorage.getItem("token");
+      const cevap= await axios.get("https://localhost:7154/api/Talepler/TalepDetay/" + id,
+        {
+          headers:{
+            Authorization:`Bearer ${token}`
+          }
+        }
+      );
           setTalep(cevap.data)
     }
-    catch{
-      alert("Talep bulunamadı!");
+    catch(err){
+      console.log(err.response);
+     setHata("Talep bulunamadı!");
     }
   
    };
 
+    const MesajlariGetir = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const cevap = await axios.get(
+      "https://localhost:7154/api/Mesajlar/MesajlariGetir/" + id,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    setMesajlar(cevap.data);
+
+  } catch (hata) {
+    console.log(hata.response);
+  }
+};
+
+
+
+
    const navigate=useNavigate(); 
 
    const TalepGuncelle = async () => {
+    setMesaj("");
+    setHata("");
     try{
+      const token=localStorage.getItem("token");
       await axios.put( "https://localhost:7154/api/Talepler/TalepGuncelle/" + talep.id,
-      talep);
-      alert("Talep başarıyla güncellendi!");
+      talep,
+    {
+      headers:{
+        Authorization:`Bearer ${token}`
+      }
+    });
+      setMesaj("Talep başarıyla güncellendi!");
 
-    }catch{
-      alert("Talep güncellenemedi");
+    }catch(err){
+      console.log(err.response);
+     setHata("Talep güncellenemedi");
 
     }
    };
+
+const MesajGonder = async () => {
+  setMesaj("");
+  setHata("");
+
+  if (yeniMesaj.trim() === "") {
+    setHata("Mesaj boş olamaz.");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await axios.post(
+      "https://localhost:7154/api/Mesajlar/MesajGonder",
+      null,
+      {
+        params: {
+          talepId: talep.id,
+          icerik: yeniMesaj
+        },
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    setMesaj("Mesaj başarıyla gönderildi.");
+    setYeniMesaj("");
+
+    MesajlariGetir();
+
+  } catch (err) {
+    console.log(err.response);
+    setHata(
+      err.response?.data || "Mesaj gönderilemedi."
+    );
+  }
+};
+
 
 
 
@@ -46,6 +139,21 @@ function TalepDetay() {
 
         </div>
        <div className="card-body">
+        {hata && (
+  <div className="alert alert-danger">
+    {hata}
+  </div>
+)}
+
+{mesaj && (
+  <div className="alert alert-success">
+    {mesaj}
+  </div>
+)}
+
+
+
+
         <p><strong>Talep No:</strong>{talep.id}</p>
         <div className="form-group mb-3">
   <label>Sipariş No</label>
@@ -126,37 +234,61 @@ function TalepDetay() {
         <div className='border rounded p-5 text-center mb-3 '>
           Fotoğraf Önizleme
         </div>
-        <h5 className="mt-4">Mesajlar</h5>
+    <h5 className="mt-4">Mesajlar</h5>
 
-<div className="border rounded p-3 mb-3">
-  <p><strong>Kullanıcı:</strong> Ürün kutudan hasarlı çıktı.</p>
-  <small className="text-muted">22.07.2026 10:30</small>
-</div>
+{mesajlar.map((m) => (
+  <div
+    key={m.id}
+    className={
+      m.rol === "Admin"
+        ? "border rounded p-3 mb-3 bg-light"
+        : "border rounded p-3 mb-3"
+    }
+  >
+    <p>
+      <strong>{m.rol}:</strong> {m.icerik}
+    </p>
 
-<div className="border rounded p-3 mb-3 bg-light">
-  <p><strong>Admin:</strong> Talebiniz incelenmektedir.</p>
-  <small className="text-muted">22.07.2026 14:15</small>
-</div>
+    <small className="text-muted">
+      {new Date(m.gonderilmeTarihi).toLocaleString("tr-TR")}
+    </small>
+  </div>
+))}
 
-<h5>Yeni Mesaj</h5>
+{rol === "Admin" && (
+  <>
+    <h5>Yeni Mesaj</h5>
 
-<div className="form-group">
-  <textarea
-    className="form-control"
-    rows="4"
-    placeholder="Mesajınızı yazınız..."
-  ></textarea>
-</div>
+    <div className="form-group">
+      <textarea
+        className="form-control"
+        rows="4"
+        placeholder="Mesajınızı yazınız..."
+        value={yeniMesaj}
+        onChange={(e) => setYeniMesaj(e.target.value)}
+      ></textarea>
+    </div>
 
-<button className="btn btn-primary mb-3 mx-3"> Mesaj Gönder</button>
+    <button
+      className="btn btn-primary mb-3 mx-3"
+      onClick={MesajGonder}
+    >
+      Mesaj Gönder
+    </button>
+  </>
+)}
  
 
 <button className='btn btn-warning mb-3 mx-3' onClick={TalepGuncelle}>Güncelle</button>
 
-<button className='btn btn-secondary mb-3 mx-3' onClick={() => navigate('/taleplerim')}>Geri Dön</button>
-        
-
-
+<button
+  className="btn btn-secondary mb-3 mx-3"
+  onClick={() =>
+    navigate(rol === "Admin" ? "/admin-talep-yonetimi" : "/taleplerim")
+  }
+>
+  Geri Dön
+</button>
 
        </div>
       </div>
